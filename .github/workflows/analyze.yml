@@ -1,0 +1,30 @@
+name: Analyze URL
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: Public website or YouTube URL
+        required: true
+        default: https://youtu.be/uCnKAwI_wlw
+permissions:
+  contents: read
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -r requirements.txt
+      - name: Collect evidence
+        env:
+          TARGET_URL: ${{ inputs.url }}
+        run: python scripts/analyze.py "$TARGET_URL"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: analysis-report
+          path: reports/
+          if-no-files-found: warn
